@@ -7,8 +7,8 @@ class Application {
     this.fetchAllReviews();
   }
 
-  createMovieCards (movie) {
-    let movieCardDiv = document.getElementById('movieCards')
+  createMovieCards(movie) {
+    let movieCardDiv = document.getElementById('movieCards');
     movieCardDiv.innerHTML += `<div class="teal raised card">
                                 <div class="image">
                                   <img src="${movie.poster_url}" style="height:200px,width:132px">
@@ -59,8 +59,11 @@ class Application {
 
   reviewEventListener() {
     let reviewButton = document.getElementById('reviews');
-    reviewButton.addEventListener('click', {
-      
+    let home = document.getElementById('homeButton');
+    reviewButton.addEventListener('click', (event) => {
+      reviewButton.classList.add('active');
+      home.classList.remove('active');
+      this.renderReviewCards(reviews, );
     })
   }
 
@@ -78,9 +81,38 @@ class Application {
     })
   }
 
-  renderReviewCards(reviewArray, card) {
+  renderReviewCards(reviewArray) {
+    let reviewCardDiv = document.getElementById('movieCards');
+    reviewCardDiv.innerHTML = '';
     reviewArray.forEach(review => {
+      reviewCardDiv.innerHTML += `<div class="ui raised link teal card">
+                                  <div class="content">
+                                    <div class="header">${movies.find(film => film.id === review.movie_id).title}</div>
+                                    <div class="meta">
+                                      <span class="category">Rating: ${review.score}/4 Stars</span>
+                                    </div>
+                                    <div class="description">
+                                      <p>${review.review_text}</p>
+                                    </div>
+                                  </div>
+                                  <div class="extra content">
+                                    <div class="right floated author">
+                                      <img class="ui avatar image" src="${review.reviewer_pic_url}"> ${review.reviewer} - ${review.publication}
+                                    </div>
+                                  </div>
+                                </div>`
+    });
+  }
 
+  homeButtonEventListener() {
+    let home = document.getElementById('homeButton');
+    let review = document.getElementById('reviews');
+    home.addEventListener('click', (event) => {
+      home.classList.add('active');
+      review.classList.remove('active');
+      let movieCardDiv = document.getElementById('movieCards');
+      movieCardDiv.innerHTML = '';
+      movies.forEach(movie => this.createMovieCards(movie))
     })
   }
 }
