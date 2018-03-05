@@ -5,6 +5,11 @@ class Application {
   constructor() {
     this.fetchMovies();
     this.fetchAllReviews();
+    this.reviewButton = document.getElementById('reviews');
+    this.home = document.getElementById('homeButton');
+    this.movieButton = document.getElementById('new-movie');
+    this.searchBar = document.getElementById('search-bar');
+    this.newReview = document.getElementById('newReview');
   }
 
   createMovieCards(movie) {
@@ -30,7 +35,7 @@ class Application {
                                     Released: ${this.formatDate(movie.release_date)}
                                   </span>
                                 </div>
-                                <div class="ui bottom attached button">
+                                <div class="ui bottom attached button new-review">
                                   <i class="add icon"></i>
                                   Add Review
                                 </div>
@@ -58,12 +63,10 @@ class Application {
   }
 
   reviewEventListener() {
-    let reviewButton = document.getElementById('reviews');
-    let home = document.getElementById('homeButton');
-    reviewButton.addEventListener('click', (event) => {
-      reviewButton.classList.add('active');
-      home.classList.remove('active');
-      this.renderReviewCards(reviews, );
+    this.reviewButton.addEventListener('click', (event) => {
+      this.adjustActiveTab();
+      this.reviewButton.classList.add('active');
+      this.renderReviewCards(reviews);
     })
   }
 
@@ -105,14 +108,155 @@ class Application {
   }
 
   homeButtonEventListener() {
-    let home = document.getElementById('homeButton');
-    let review = document.getElementById('reviews');
-    home.addEventListener('click', (event) => {
-      home.classList.add('active');
-      review.classList.remove('active');
+    this.home.addEventListener('click', (event) => {
+      this.adjustActiveTab();
+      this.home.classList.add('active');
       let movieCardDiv = document.getElementById('movieCards');
       movieCardDiv.innerHTML = '';
       movies.forEach(movie => this.createMovieCards(movie))
     })
+  }
+
+  addMovieEventListener() {
+    this.movieButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.adjustActiveTab();
+      this.movieButton.classList.add('active');
+      let newMovieDiv = document.getElementById('movieCards');
+      newMovieDiv.innerHTML = `<form class="ui form" id="new-movie-submission">
+                                <div class="three fields">
+                                  <div class="field">
+                                    <label>Movie Title</label>
+                                    <input type="text" placeholder="Movie Title">
+                                  </div>
+                                  <div class="field">
+                                    <label>Director</label>
+                                    <input type="text" placeholder="Director">
+                                  </div>
+                                  <div class="field">
+                                    <label>Writer</label>
+                                    <input type="text" placeholder="Writer">
+                                  </div>
+                                </div>
+                                <div class="fields">
+                                  <div class="ten wide field">
+                                    <label>Tag Line</label>
+                                    <input type="text" placeholder="Tag Line">
+                                  </div>
+                                  <div class="six wide field">
+                                    <label>Release Date</label>
+                                    <input type="date" placeholder="Date">
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="field">
+                                <div class="sixteen wide field">
+                                  <label>Poster URL</label>
+                                  <input type="text" placeholder="Poster URL">
+                                </div>
+                              </div>
+                              <div class="fields">
+                                <div class="eight wide field">
+                                  <label>Runtime (In Minutes)</label>
+                                  <input type="number" min="1" placeholder="Runtime">
+                                </div>
+                                <div class="eight wide field">
+                                  <label>Rating</label>
+                                  <select name="rating" multiple="" class="ui fluid dropdown">
+                                    <option value="">Rating</option>
+                                    <option value="G">G - General Audiences</option>
+                                    <option value="PG">PG - Parental Guidance Suggested</option>
+                                    <option value="PG-13">PG-13 - Parents Strongly Cautioned</option>
+                                    <option value="R">R - Restricted</option>
+                                    <option value="NC-17">NC17 - Adults Only</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="field">
+                                <label>Summary</label>
+                                <textarea></textarea>
+                              </div>
+                              <div class="ui button" id="submit" tabindex="0">Add Movie</div>
+                              </form>`;
+      this.addMovieForm();
+    })
+  }
+
+  addMovieForm() {
+    let newMovie = document.getElementById('submit');
+    newMovie.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      let movieForm = document.getElementById('new-movie-submission');
+      let movieObj = {
+        title: movieForm[0].value,
+        director: movieForm[1].value,
+        writer: movieForm[2].value,
+        tag_line: movieForm[3].value,
+        release_date: movieForm[4].value,
+        poster_url: movieForm[5].value,
+        runtime: movieForm[6].value,
+        mpaa_rating: movieForm[7].value,
+        summary: movieForm[8].value,
+      }
+      let m = new Movie(movieObj);
+      movies.push(m);
+      this.adjustActiveTab()
+      this.home.classList.add('active');
+      let reviewCardDiv = document.getElementById('movieCards');
+      reviewCardDiv.innerHTML = '';
+      movies.forEach(movie => this.createMovieCards(movie));
+      let options = {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+        },
+        body: JSON.stringify({ movie: m })
+      }
+      fetch('http://localhost:3000/api/movies', options)
+        .then(res => res.json())
+        .then(json => console.log(json))
+    });
+  }
+
+  adjustActiveTab() {
+    this.reviewButton.classList.remove('active');
+    this.home.classList.remove('active');
+    this.movieButton.classList.remove('active');
+    this.searchBar.classList.remove('active');
+    this.newReview.classList.remove('active');
+  }
+
+  addSearchListener() {
+    let search = document.getElementById('search-field');
+    search.addEventListener('click', event => {
+      let searchText = document.getElementById('search-text').value;
+      let match = movies.find(mov => mov.title.toLowerCase() === searchText.toLowerCase());
+      this.adjustActiveTab();
+      this.searchBar.classList.add('active');
+      document.getElementById('movieCards').innerHTML = '';
+      this.createMovieCards(match);
+    })
+  }
+
+  addReviewEventListener() {
+    this.newReview.addEventListener('click', () => {
+      console.log('Reviews will be added here');
+    })
+  }
+
+  addReviewEventListenerTwo() {
+    let btn = document.getElementsByClassName('new-review');
+    console.log(btn);
+    for(let i = 0; i < btn.length; i++) {
+      btn[i].addEventListener('click', (event) => {
+        console.dir(event.target);
+      })
+    }
+  }
+
+  addReviewForm() {
+
   }
 }
